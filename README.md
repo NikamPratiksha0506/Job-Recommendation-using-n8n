@@ -32,7 +32,7 @@ This workflow automatically:
 ## ⚙️ Setup Instructions  
 
 ### 1️⃣ Clone Repository  
-```bash
+
 git clone https://github.com/your-username/n8n-job-matcher.git
 cd n8n-job-matcher
 
