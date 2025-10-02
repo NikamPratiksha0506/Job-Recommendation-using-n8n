@@ -1,0 +1,522 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "87242381-b6c4-4bd7-bb98-bb3901b1d41a",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://api.scrapingdog.com/google_jobs",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "api_key",
+              "value": "your api_key"
+            },
+            {
+              "name": "query",
+              "value": "Data Analyst "
+            },
+            {
+              "name": "country",
+              "value": "in"
+            },
+            {
+              "name": "chips"
+            },
+            {
+              "name": "lrad"
+            },
+            {
+              "name": "uds"
+            },
+            {
+              "name": "ltype"
+            },
+            {
+              "name": "next_page_token"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "7cbe28ec-f152-42e9-86b8-9992e6b97638",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are given raw job listings data in JSON format. Extract and transform it into a structured and simplified JSON array where each object contains only the following fields:\n\n- job_title\n- company_name\n- location\n- job_type (from extensions, e.g., Full-time/Part-time)\n- posted_days_ago (from extensions if available)\n- description_summary (shortened to max 200 words)\n- key_responsibilities (list of bullet points if available)\n- key_qualifications (list of bullet points if available)\n- salary (if available, otherwise null)\n- apply_links (list of apply option links)\n\nInput JSON:\n{{ $json }}\n\nReturn only the cleaned JSON output with no extra text."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "5f83b933-838c-40a1-b9c6-ce1da5fb2946",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "dOpZ4BI3oZWEQIfQ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "522ee2da-443f-4c64-b10b-48fd2ae41d11",
+              "name": "resume_text",
+              "value": "Pratiksha Nikam is a passionate Data Analyst and Data Science professional with a B.Tech in Computer Science, bringing strong technical and analytical skills with hands-on experience in data analysis, business intelligence, and machine learning. She is proficient in SQL, Python, Power BI, Tableau, and Excel, with expertise in ML frameworks such as Pandas, NumPy, Matplotlib, Seaborn, and Scikit-learn. Her experience spans across data cleaning, exploratory data analysis, statistical modeling, predictive analytics, and interactive dashboard development. She has delivered multiple verified projects, including OYO Booking Analysis Dashboard in Power BI, Netflix Movie and TV Show Clustering using unsupervised machine learning, and E-commerce Sales and Customer Insights in Power BI. Through these projects, she has designed dashboards, applied feature engineering, and implemented recommendation and classification models to extract actionable business insights. Professionally, she worked as a Software Engineer at Technolabs Software Solutions from September 2022 to December 2023, where she developed scalable data-driven web applications and built customer dashboards, retail analytics tools, and e-commerce platforms with real-time insights. Currently, she is a Data Scientist Trainee at AlmaBetter, where she works on machine learning case studies, feature engineering, and statistical analysis on large datasets while also assisting peers as a Technical Query Assistant for coding challenges. She has achieved recognition by securing a top 5 position in a national data visualization competition and holds certifications from Google in Data Analytics, Microsoft in Power BI Data Analysis, and IIT Guwahati in Full Stack Data Science.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        768,
+        0
+      ],
+      "id": "9373ede2-8c5e-43ec-b5c6-04f656c0288b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a career assistant. \n\nHere is my resume:\n\n{{ $json.resume_text }}\n\nHere are job postings:\n\n{{ $json.cleaned_jobs }}\n\nFor each job:\n- Keep all important fields of the job such as: job_title, company_name, location, job_type, posted_days_ago, summary, responsibilities, qualifications, salary, apply_links.\n- Add a new field `match_score` (rate relevance 1–5).\n- Add a new field `cover_letter` (a short personalized cover letter tailored to this job, based on my resume).\n\nReturn only a valid JSON array with all jobs, including match_score and cover_letter. Do not include explanations, notes, markdown, or code block formatting."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        976,
+        0
+      ],
+      "id": "9e01e6fe-6abc-43fb-8415-84cf2b2e79a6",
+      "name": "Message a model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "dOpZ4BI3oZWEQIfQ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get raw text from the model output\nconst rawText = $json.content.parts[0].text.trim();\n\n// Parse JSON safely\nlet jobs;\ntry {\n  jobs = JSON.parse(rawText);\n} catch (e) {\n  throw new Error(\"❌ Failed to parse JSON. Raw text: \" + rawText);\n}\n\n// Ensure it's an array\nif (!Array.isArray(jobs)) {\n  jobs = [jobs];\n}\n\n// Convert to n8n format\nconst output = jobs.map(job => ({ json: job }));\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1328,
+        0
+      ],
+      "id": "dcecff2c-b0b2-4605-b01b-a27030d5661c",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "15aaSjmtdk3GayJ-hO1MxXhwum5X8xaFEYyy_jgQZPg0",
+          "mode": "list",
+          "cachedResultName": "Job Recommendor",
+          "cachedResultUrl": "Your Spreadsheet link"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "Your Spreadsheet link"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Title": "={{ $json.job_title }}",
+            "Discription": "={{ $json.summary }}",
+            "Company Name": "={{ $json.company_name }}",
+            "Location": "={{ $json.location }}",
+            "Job Type": "={{ $json.job_type }}",
+            "Salary": "={{ $json.salary }}",
+            "Job link": "={{ $json.apply_links }}",
+            "Match_Score": "={{ $json.match_score }}",
+            "Cover Letter": "={{ $json.cover_letter }}"
+          },
+          "matchingColumns": [
+            "Title"
+          ],
+          "schema": [
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Job link",
+              "displayName": "Job link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Discription",
+              "displayName": "Discription",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Salary",
+              "displayName": "Salary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job Type",
+              "displayName": "Job Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company Name",
+              "displayName": "Company Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Match_Score",
+              "displayName": "Match_Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Cover Letter",
+              "displayName": "Cover Letter",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1536,
+        0
+      ],
+      "id": "7f42d72d-dbc1-4462-b36e-6bdbe337dbea",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "your google sheet id",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "15aaSjmtdk3GayJ-hO1MxXhwum5X8xaFEYyy_jgQZPg0",
+          "mode": "list",
+          "cachedResultName": "Job Recommendor",
+          "cachedResultUrl": "Your Spreadsheet link"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "Your Spreadsheet link"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1744,
+        0
+      ],
+      "id": "fa34f66a-6513-4092-9b15-5a2bede260a0",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "your google sheet id",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "Match_Score",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        1952,
+        0
+      ],
+      "id": "0dfa94e0-e098-49d8-ad7c-43ef0046befa",
+      "name": "Sort"
+    },
+    {
+      "parameters": {
+        "jsCode": "const jobs = $input.all().map(item => item.json);\n\nlet emailBody = \"📌 Top Job Matches Today\\n\\n\";\n\njobs.forEach((job, i) => {\n  emailBody += `${i+1}. ${job[\"Title\"] || \"No Title\"}\\n`;\n  emailBody += `📝 Discription: ${job[\"Discription\"] || \"Not provided\"}\\n`;\n  emailBody += `📍 Location: ${job[\"Location\"] || \"Not provided\"}\\n`;\n  emailBody += `💼 Job Type: ${job[\"Job Type\"] || \"Not provided\"}\\n`;\n  emailBody += `💰 Salary: ${job[\"Salary\"] || \"Not provided\"}\\n`;\n  emailBody += `🔗 Link: ${job[\"Job link\"] || \"Not provided\"}\\n\\n`;\n});\n\nreturn [{ json: { emailBody } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2160,
+        0
+      ],
+      "id": "f6fd4bc1-225c-4b75-9894-ada9f84dde63",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "sendTo": "your Email ID",
+        "subject": "List of relevant jobs",
+        "emailType": "text",
+        "message": "={{ $json.emailBody }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2368,
+        0
+      ],
+      "id": "1d25f009-5604-489f-8f98-541746923e51",
+      "name": "Send a message",
+      "webhookId": "89899575-3eeb-45b6-8f98-fa1740d26307",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "your gmail Id number",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c8a48aa9-a355-4849-96d6-c6de5f93e080",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "Your Instance Id"
+  },
+  "id": "EEwuarzLKJp9hXNB",
+  "tags": []
+}
